@@ -17,18 +17,12 @@ body {
 }
 .hide { display: none !important; }
 
-/* ============ ANIMASI ============ */
-@keyframes hueShift {
-  to { background-position: 300% 0; }
-}
+@keyframes hueShift { to { background-position: 300% 0; } }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scalePop {
   0%   { opacity: 0; transform: scale(.7); }
   60%  { opacity: 1; transform: scale(1.05); }
@@ -60,7 +54,6 @@ body {
   50%      { opacity: .4; }
 }
 
-/* ============ LOGIN ============ */
 .center {
   display: flex;
   flex-direction: column;
@@ -69,9 +62,9 @@ body {
   min-height: 90vh;
   text-align: center;
   position: relative;
+  z-index: 1;
 }
 
-/* Background glow */
 .bg-glow {
   position: fixed;
   border-radius: 50%;
@@ -99,8 +92,7 @@ body {
   animation: glowPulse 6s ease-in-out infinite 4s;
 }
 
-/* ==== KOTAK UTAMA — gabungan logo + form ==== */
-.main-box {
+.main-box, .home-box {
   position: relative;
   width: 100%;
   max-width: 360px;
@@ -113,9 +105,8 @@ body {
   animation: scalePop .6s cubic-bezier(.22,1,.36,1) both;
 }
 
-.logo {
+.logo, .home-logo {
   text-align: center;
-  font-size: 38px;
   font-weight: 900;
   letter-spacing: 2px;
   background: linear-gradient(90deg,
@@ -129,6 +120,8 @@ body {
   margin-bottom: 4px;
   filter: drop-shadow(0 2px 12px rgba(123,92,255,.5));
 }
+.logo { font-size: 38px; }
+.home-logo { font-size: 42px; }
 
 .sub {
   text-align: center;
@@ -235,36 +228,6 @@ input:focus {
   margin-bottom: 2px;
 }
 
-/* ============ HOME ============ */
-.home-box {
-  position: relative;
-  width: 100%;
-  max-width: 360px;
-  background: #0f1428;
-  border: 1px solid #2a3350;
-  border-radius: 24px;
-  padding: 30px 24px 26px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.6);
-  z-index: 2;
-  animation: scalePop .6s cubic-bezier(.22,1,.36,1) both;
-}
-.home-logo {
-  text-align: center;
-  font-size: 42px;
-  font-weight: 900;
-  letter-spacing: 3px;
-  background: linear-gradient(90deg,
-    #ff3b3b, #ff8c00, #ffd700, #3ddc84,
-    #00c2ff, #7b5cff, #ff5ce0, #ff3b3b);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: hueShift 4s linear infinite;
-  margin-bottom: 4px;
-  filter: drop-shadow(0 2px 12px rgba(123,92,255,.5));
-}
-
 .toggle-box {
   background: #0b1220;
   border: 1px solid #2a3350;
@@ -338,7 +301,6 @@ input:focus {
   background: rgba(248,113,113,.3);
 }
 
-/* ============ ORB ============ */
 #orb {
   position: fixed;
   right: 20px;
@@ -360,7 +322,6 @@ input:focus {
 }
 #orb.hide { display: none !important; }
 
-/* ============ PANEL ============ */
 #panel {
   position: fixed;
   right: 20px;
@@ -393,22 +354,16 @@ input:focus {
   font-size: 14px;
   border-radius: 18px 18px 0 0;
 }
-.phead .left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.phead .left { display: flex; align-items: center; gap: 8px; }
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: #4ade80;
   box-shadow: 0 0 10px #4ade80;
   animation: blink 1.6s infinite;
 }
 .phead button {
-  width: 30px;
-  height: 30px;
+  width: 30px; height: 30px;
   padding: 0;
   margin: 0 0 0 4px;
   border-radius: 8px;
@@ -423,7 +378,6 @@ input:focus {
 .phead button:active { background: rgba(255,255,255,.4); }
 
 .pbody { padding: 14px; }
-
 .pbody .lbl {
   display: block;
   font-size: 11px;
@@ -435,8 +389,7 @@ input:focus {
   margin-top: 12px;
 }
 .pbody .lbl:first-child { margin-top: 0; }
-
-.pbody select, .pbody input[type="text"], .pbody input[type="password"] {
+.pbody select, .pbody input {
   width: 100%;
   background: #1e293b;
   border: 1px solid #334155;
@@ -450,11 +403,7 @@ input:focus {
 }
 .pbody select:focus, .pbody input:focus { border-color: #7b5cff; }
 
-.pills {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 8px;
-}
+.pills { display: flex; gap: 4px; margin-bottom: 8px; }
 .pill {
   flex: 1;
   padding: 9px 0;
@@ -512,18 +461,38 @@ input:focus {
   line-height: 1.4;
 }
 
-/* Settings box */
 #settings {
   background: #0b1220;
   border-bottom: 1px solid #2a3350;
   padding: 12px;
   animation: slideInRight .3s cubic-bezier(.22,1,.36,1) both;
 }
+#settings .lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a5b4fc;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+#settings .lbl:first-child { margin-top: 0; }
+#settings input {
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+}
 </style>
 </head>
 <body>
 
-<!-- BACKGROUND GLOW -->
 <div class="bg-glow glow-1"></div>
 <div class="bg-glow glow-2"></div>
 <div class="bg-glow glow-3"></div>
@@ -607,11 +576,11 @@ input:focus {
   </div>
 
   <div id="settings" style="display:none;">
-    <span class="lbl" style="color:#94a3b8;">API Key</span>
+    <span class="lbl">API Key</span>
     <input type="password" id="akey" placeholder="gsk_...">
-    <span class="lbl" style="color:#94a3b8;">Endpoint</span>
+    <span class="lbl">Endpoint</span>
     <input type="text" id="aend" value="https://api.groq.com/openai/v1/chat/completions">
-    <span class="lbl" style="color:#94a3b8;">Model</span>
+    <span class="lbl">Model</span>
     <input type="text" id="amod" value="llama-3.3-70b-versatile">
     <button type="button" class="btn-full" style="background:linear-gradient(135deg,#7b5cff,#ff5ce0);margin-top:8px;" onclick="saveSettings()">Simpan</button>
   </div>
@@ -650,9 +619,6 @@ input:focus {
 </div>
 
 <script>
-// ============================================================
-// VARIABEL
-// ============================================================
 var _score = 100;
 var _scanning = false;
 var _scanTimer = null;
@@ -793,4 +759,40 @@ function scanQuestions() {
       var lt = '';
       if (inp.id) {
         var lb = document.querySelector('label[for="' + inp.id + '"]');
-        if (lb) lt = lb.in
+        if (lb) lt = lb.innerText.trim();
+      }
+      if (!lt) {
+        var pl = inp.closest ? inp.closest('label') : null;
+        if (pl) lt = pl.innerText.trim();
+      }
+      opts.push({ value: inp.value || '', text: lt || inp.value, input: inp });
+    }
+    if (text && opts.length >= 2) {
+      out.push({ text: text, options: opts });
+    }
+  }
+  return out;
+}
+
+function doScan() {
+  if (_scanning) {
+    stopScan();
+    log('⏹ Scan dihentikan');
+    return;
+  }
+  _scanning = true;
+  log('📡 Scan aktif... cari soal di halaman.');
+  _scanTimer = setInterval(function() {
+    var qs = scanQuestions();
+    if (qs.length) {
+      log('✅ Terdeteksi ' + qs.length + ' soal!');
+    } else {
+      log('⏳ Belum ada soal terdeteksi...');
+    }
+  }, 2000);
+}
+
+function stopScan() {
+  _scanning = false;
+  if (_scanTimer) {
+  
