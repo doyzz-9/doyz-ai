@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOYZZ AI</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  background: #0a0e1a;
+  color: #fff;
+  min-height: 100vh;
+  padding: 20px;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+.hide { display: none !important; }
+
+@keyframes hueShift { to { background-position: 300% 0; } }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scalePop {
+  0%   { opacity: 0; transform: scale(.7); }
+  60%  { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: .4; transform: scale(1); }
+  50%      { opacity: .8; transform: scale(1.15); }
+}
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes orbPulse {
+  0%, 100% { box-shadow: 0 8px 30px rgba(123,92,255,.7), 0 0 0 0 rgba(168,85,247,.6); }
+  50%      { box-shadow: 0 8px 30px rgba(123,92,255,.7), 0 0 0 16px rgba(168,85,247,0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shine {
+  0%   { left: -60%; }
+  50%  { left: 120%; }
+  100% { left: 120%; }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .4; }
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 90vh;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.bg-glow {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+.glow-1 {
+  width: 300px; height: 300px;
+  background: #7b5cff;
+  top: -100px; left: -100px;
+  animation: glowPulse 6s ease-in-out infinite;
+}
+.glow-2 {
+  width: 340px; height: 340px;
+  background: #ff5ce0;
+  bottom: -120px; right: -120px;
+  animation: glowPulse 6s ease-in-out infinite 2s;
+}
+.glow-3 {
+  width: 240px; height: 240px;
+  background: #00c2ff;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation: glowPulse 6s ease-in-out infinite 4s;
+}
+
+.main-box, .home-box {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: #0f1428;
+  border: 1px solid #2a3350;
+  border-radius: 24px;
+  padding: 30px 24px 26px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  z-index: 2;
+  animation: scalePop .6s cubic-bezier(.22,1,.36,1) both;
+}
+
+.logo, .home-logo {
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg,
+    #ff3b3b, #ff8c00, #ffd700, #3ddc84,
+    #00c2ff, #7b5cff, #ff5ce0, #ff3b3b);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hueShift 4s linear infinite;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 2px 12px rgba(123,92,255,.5));
+}
+.logo { font-size: 38px; }
+.home-logo { font-size: 42px; }
+
+.sub {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #64748b;
+  margin-bottom: 26px;
+  animation: fadeIn 1s .3s both;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #2a3350, transparent);
+  margin-bottom: 22px;
+}
+
+.field {
+  margin-bottom: 14px;
+  animation: fadeUp .6s cubic-bezier(.22,1,.36,1) both;
+}
+.field:nth-of-type(1) { animation-delay: .15s; }
+.field:nth-of-type(2) { animation-delay: .25s; }
+
+label {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+input {
+  width: 100%;
+  background: #0b1220;
+  border: 1px solid #2a3350;
+  color: #fff;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:focus {
+  border-color: #7b5cff;
+  box-shadow: 0 0 0 3px rgba(123,92,255,.15);
+}
+
+.btn-main {
+  position: relative;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: #fff;
+  background: linear-gradient(90deg, #7b5cff, #ff5ce0, #7b5cff);
+  background-size: 200% 100%;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 10px;
+  overflow: hidden;
+  transition: transform .15s, background-position .4s;
+  box-shadow: 0 10px 30px rgba(123,92,255,.4);
+  animation: fadeUp .6s .35s cubic-bezier(.22,1,.36,1) both;
+}
+.btn-main:active {
+  transform: scale(.97);
+  background-position: 100% 0;
+}
+.btn-main .shine {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  animation: shine 3s infinite;
+  pointer-events: none;
+}
+.btn-main .txt {
+  position: relative;
+  z-index: 2;
+}
+
+.err {
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(255,59,59,.15);
+  border: 1px solid #ff3b3b;
+  border-radius: 10px;
+  color: #ff6b6b;
+  font-size: 13px;
+  animation: scalePop .3s cubic-bezier(.34,1.56,.64,1);
+}
+.err .x {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  color: #ff3b3b;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.toggle-box {
+  background: #0b1220;
+  border: 1px solid #2a3350;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 20px 0;
+  animation: fadeUp .6s .2s cubic-bezier(.22,1,.36,1) both;
+}
+.toggle-box .txt { text-align: left; flex: 1; }
+.toggle-box .lbl { font-size: 14px; font-weight: 600; }
+.toggle-box .sbl { font-size: 11px; color: #64748b; margin-top: 2px; }
+.switch {
+  position: relative;
+  width: 56px;
+  height: 30px;
+  flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #334155;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: .3s;
+}
+.slider::before {
+  content: '';
+  position: absolute;
+  width: 22px; height: 22px;
+  left: 4px; top: 4px;
+  background: #fff;
+  border-radius: 50%;
+  transition: .3s cubic-bezier(.34,1.56,.64,1);
+}
+.switch input:checked + .slider {
+  background: linear-gradient(90deg, #7b5cff, #ff5ce0);
+  box-shadow: 0 0 16px rgba(123,92,255,.5);
+}
+.switch input:checked + .slider::before { transform: translateX(26px); }
+
+.home-info {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 18px;
+  animation: fadeUp .6s .3s cubic-bezier(.22,1,.36,1) both;
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(248,113,113,.5);
+  border-radius: 12px;
+  background: rgba(248,113,113,.15);
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 1px;
+  transition: transform .15s, background .2s;
+  animation: fadeUp .6s .4s cubic-bezier(.22,1,.36,1) both;
+}
+.btn-logout:active {
+  transform: scale(.97);
+  background: rgba(248,113,113,.3);
+}
+
+#orb {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ff5ce0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  z-index: 9999;
+  cursor: pointer;
+  user-select: none;
+  animation: scalePop .5s cubic-bezier(.34,1.56,.64,1) both,
+             orbFloat 3s ease-in-out infinite .5s,
+             orbPulse 2.4s ease-in-out infinite;
+}
+#orb.hide { display: none !important; }
+
+#panel {
+  position: fixed;
+  right: 20px;
+  bottom: 100px;
+  width: 300px;
+  max-width: calc(100vw - 40px);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #0f1428;
+  border: 1px solid #2a3350;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.8);
+  z-index: 9998;
+  color: #e2e8f0;
+  animation: scalePop .4s cubic-bezier(.22,1,.36,1) both;
+  transform-origin: bottom right;
+}
+#panel.hide { display: none !important; }
+
+.phead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ff5ce0);
+  background-size: 200% 200%;
+  animation: hueShift 6s linear infinite;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 18px 18px 0 0;
+}
+.phead .left { display: flex; align-items: center; gap: 8px; }
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
+  animation: blink 1.6s infinite;
+}
+.phead button {
+  width: 30px; height: 30px;
+  padding: 0;
+  margin: 0 0 0 4px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.phead button:active { background: rgba(255,255,255,.4); }
+
+.pbody { padding: 14px; }
+.pbody .lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a5b4fc;
+  margin-bottom: 8px;
+  margin-top: 12px;
+}
+.pbody .lbl:first-child { margin-top: 0; }
+.pbody select, .pbody input {
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 4px;
+  font-family: inherit;
+}
+.pbody select:focus, .pbody input:focus { border-color: #7b5cff; }
+
+.pills { display: flex; gap: 4px; margin-bottom: 8px; }
+.pill {
+  flex: 1;
+  padding: 9px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(.22,1,.36,1);
+  touch-action: manipulation;
+}
+.pill.active {
+  background: linear-gradient(135deg, #7b5cff, #ff5ce0);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(123,92,255,.5);
+}
+
+.btn-full {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 8px;
+  transition: transform .15s;
+  touch-action: manipulation;
+}
+.btn-full:active { transform: scale(.97); }
+.btn-scan {
+  background: linear-gradient(90deg, #00c2ff, #3ddc84);
+  box-shadow: 0 6px 18px rgba(0,194,255,.3);
+}
+.btn-answer {
+  background: linear-gradient(90deg, #7b5cff, #ff5ce0);
+  box-shadow: 0 6px 18px rgba(123,92,255,.4);
+}
+
+.log {
+  background: #0b1220;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 6px;
+  max-height: 100px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+#settings {
+  background: #0b1220;
+  border-bottom: 1px solid #2a3350;
+  padding: 12px;
+  animation: slideInRight .3s cubic-bezier(.22,1,.36,1) both;
+}
+#settings .lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a5b4fc;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+#settings .lbl:first-child { margin-top: 0; }
+#settings input {
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glow glow-1"></div>
+<div class="bg-glow glow-2"></div>
+<div class="bg-glow glow-3"></div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="center">
+  <div class="main-box">
+    <div class="logo">DOYZZ AI</div>
+    <div class="sub">FLOATING AI ASSISTANT</div>
+    <div class="divider"></div>
+
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="u" placeholder="Username"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="p" placeholder="Password">
+    </div>
+
+    <button type="button" class="btn-main"
+            onclick="doLogin()"
+            ontouchstart="doLogin(); return false;"
+            onmousedown="doLogin(); return false;">
+      <span class="shine"></span>
+      <span class="txt">LOGIN</span>
+    </button>
+
+    <div id="err" class="err hide">
+      <span class="x">✕</span>
+      <span id="err-text">Username / Password Salah</span>
+      <span class="x" style="font-size:11px;color:#ffd700;text-decoration:underline;margin-top:4px;">
+        salah buy di tt @plermelayang
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home-screen" class="center hide">
+  <div class="home-box">
+    <div class="home-logo">DOYZZ AI</div>
+    <div class="sub">FLOATING AI ASSISTANT</div>
+    <div class="divider"></div>
+
+    <div class="toggle-box">
+      <div class="txt">
+        <div class="lbl">Panel AI</div>
+        <div class="sbl">Munculkan orb mengambang</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="tgl" onchange="toggleOrb(this)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="home-info">
+      Nyalakan saklar untuk memunculkan orb.<br>
+      Tap orb untuk buka panel menu.
+    </div>
+
+    <button type="button" class="btn-logout" onclick="doLogout()">
+      🚪 LOGOUT
+    </button>
+  </div>
+</div>
+
+<!-- ORB -->
+<div id="orb" class="hide" onclick="togglePanel()">🤖</div>
+
+<!-- PANEL -->
+<div id="panel" class="hide">
+  <div class="phead">
+    <div class="left"><span class="dot"></span> DOYZZ AI</div>
+    <div>
+      <button type="button" onclick="toggleSettings()">⚙</button>
+      <button type="button" onclick="togglePanel()">✕</button>
+    </div>
+  </div>
+
+  <div id="settings" style="display:none;">
+    <span class="lbl">API Key</span>
+    <input type="password" id="akey" placeholder="gsk_...">
+    <span class="lbl">Endpoint</span>
+    <input type="text" id="aend" value="https://api.groq.com/openai/v1/chat/completions">
+    <span class="lbl">Model</span>
+    <input type="text" id="amod" value="llama-3.3-70b-versatile">
+    <button type="button" class="btn-full" style="background:linear-gradient(135deg,#7b5cff,#ff5ce0);margin-top:8px;" onclick="saveSettings()">Simpan</button>
+  </div>
+
+  <div class="pbody">
+    <span class="lbl">📚 Mapel</span>
+    <select id="mapel">
+      <option value="">— Pilih Mapel —</option>
+      <option value="PAI">PAI</option>
+      <option value="PJOK">PJOK</option>
+      <option value="B.INDO">B. Indonesia</option>
+      <option value="B.ING">B. Inggris</option>
+      <option value="MTK">Matematika</option>
+      <option value="IPA">IPA</option>
+      <option value="IPS">IPS</option>
+      <option value="BTQ">BTQ</option>
+      <option value="PP">PP</option>
+      <option value="TIK">TIK</option>
+    </select>
+
+    <span class="lbl">🎯 Nilai</span>
+    <div class="pills" id="pills">
+      <div class="pill" onclick="pickScore(this,75)">75</div>
+      <div class="pill" onclick="pickScore(this,80)">80</div>
+      <div class="pill" onclick="pickScore(this,85)">85</div>
+      <div class="pill" onclick="pickScore(this,90)">90</div>
+      <div class="pill" onclick="pickScore(this,95)">95</div>
+      <div class="pill active" onclick="pickScore(this,100)">100</div>
+    </div>
+
+    <button type="button" class="btn-full btn-scan" onclick="doScan()">📷 Scan Soal Ujian Live</button>
+    <button type="button" class="btn-full btn-answer" onclick="doAnswer()">🚀 Jawab Otomatis</button>
+
+    <div class="log" id="log">Pilih mapel & nilai, lalu klik Scan.</div>
+  </div>
+</div>
+
+<script>
+var _score = 100;
+var _scanning = false;
+var _scanTimer = null;
+
+function $(id) { return document.getElementById(id); }
+
+function log(msg) {
+  var l = $('log');
+  if (l) l.textContent = msg;
+  console.log(msg);
+}
+
+// ============ LOGIN ============
+function doLogin() {
+  var u = ($('u').value || '').trim().toLowerCase();
+  var p = ($('p').value || '').trim();
+
+  console.log('LOGIN:', u, p);
+
+  if (!u || !p) {
+    showErr('Isi username & password dulu!');
+    return;
+  }
+
+  var validU = String.fromCharCode(100,111,121,122);
+  var validP = String.fromCharCode(49,50,51);
+
+  if (u === validU && p === validP) {
+    console.log('SUCCESS');
+    $('login-screen').classList.add('hide');
+    $('home-screen').classList.remove('hide');
+    $('err').classList.add('hide');
+  } else {
+    console.log('FAILED');
+    if (u !== validU && p !== validP) showErr('Username & Password salah');
+    else if (u !== validU) showErr('Username salah');
+    else showErr('Password salah');
+  }
+}
+
+function showErr(msg) {
+  var e = $('err');
+  $('err-text').textContent = msg;
+  e.classList.remove('hide');
+  e.style.animation = 'none';
+  void e.offsetWidth;
+  e.style.animation = '';
+}
+
+// ============ LOGOUT ============
+function doLogout() {
+  $('tgl').checked = false;
+  $('orb').classList.add('hide');
+  $('panel').classList.add('hide');
+  $('home-screen').classList.add('hide');
+  $('login-screen').classList.remove('hide');
+  $('u').value = '';
+  $('p').value = '';
+  $('err').classList.add('hide');
+  if (_scanning) stopScan();
+}
+
+// ============ TOGGLE ORB ============
+function toggleOrb(cb) {
+  if (cb.checked) {
+    $('orb').classList.remove('hide');
+  } else {
+    $('orb').classList.add('hide');
+    $('panel').classList.add('hide');
+    if (_scanning) stopScan();
+  }
+}
+
+// ============ ORB CLICK ============
+function togglePanel() {
+  var p = $('panel');
+  if (p.classList.contains('hide')) {
+    p.classList.remove('hide');
+    p.style.animation = 'none';
+    void p.offsetWidth;
+    p.style.animation = '';
+  } else {
+    p.classList.add('hide');
+  }
+}
+
+function toggleSettings() {
+  var s = $('settings');
+  s.style.display = (s.style.display === 'none') ? 'block' : 'none';
+}
+
+function saveSettings() {
+  localStorage.setItem('k', $('akey').value.trim());
+  localStorage.setItem('e', $('aend').value.trim());
+  localStorage.setItem('m', $('amod').value.trim());
+  log('✅ Pengaturan disimpan');
+  toggleSettings();
+}
+
+// ============ SCORE ============
+function pickScore(el, val) {
+  var pills = document.querySelectorAll('.pill');
+  for (var i = 0; i < pills.length; i++) pills[i].classList.remove('active');
+  el.classList.add('active');
+  _score = val;
+}
+
+// ============ SCAN ============
+function scanQuestions() {
+  var out = [];
+  var groups = {};
+  var radios = document.querySelectorAll('input[type="radio"]');
+  for (var i = 0; i < radios.length; i++) {
+    var r = radios[i];
+    if (!r.name) continue;
+    if (!groups[r.name]) groups[r.name] = [];
+    groups[r.name].push(r);
+  }
+  for (var n in groups) {
+    if (!groups.hasOwnProperty(n)) continue;
+    var inputs = groups[n];
+    if (inputs.length < 2) continue;
+    var text = '';
+    var node = inputs[0].parentElement;
+    var d = 0;
+    while (node && d < 8) {
+      var t = (node.innerText || node.textContent || '').trim();
+      if (t && t.length > 5 && t.length < 500) {
+        text = t.split('\n')[0].substring(0, 300);
+        break;
+      }
+      node = node.parentElement;
+      d++;
+    }
+    var opts = [];
+    for (var j = 0; j < inputs.length; j++) {
+      var inp = inputs[j];
+      var lt = '';
+      if (inp.id) {
+        var lb = document.querySelector('label[for="' + inp.id + '"]');
+        if (lb) lt = lb.innerText.trim();
+      }
+      if (!lt) {
+        var pl = inp.closest ? inp.closest('label') : null;
+        if (pl) lt = pl.innerText.trim();
+      }
+      opts.push({ value: inp.value || '', text: lt || inp.value, input: inp });
+    }
+    if (text && opts.length >= 2) {
+      out.push({ text: text, options: opts });
+    }
+  }
+  return out;
+}
+
+function doScan() {
+  if (_scanning) {
+    stopScan();
+    log('⏹ Scan dihentikan');
+    return;
+  }
+  _scanning = true;
+  log('📡 Scan aktif... cari soal di halaman.');
+  _scanTimer = setInterval(function() {
+    var qs = scanQuestions();
+    if (qs.length) {
+      log('✅ Terdeteksi ' + qs.length + ' soal!');
+    } else {
+      log('⏳ Belum ada soal terdeteksi...');
+    }
+  }, 2000);
+}
+
+function stopScan() {
+  _scanning = false;
+  if (_scanTimer) {
+  
