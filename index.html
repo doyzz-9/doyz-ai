@@ -1,0 +1,487 @@
+<script>
+// ============================================================
+// SEMUA FUNGSI GLOBAL
+// ============================================================
+
+var _score = 100;
+var _scanning = false;
+var _scanTimer = null;
+
+function el(id) { return document.getElementById(id); }
+
+function toast(msg, type) {
+  var t = el('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = '';
+  if (type) t.className = type;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove('show'); }, 2400);
+}
+
+// ============ LOGIN ============
+function doLogin() {
+  var u = el('in-user').value.trim().toLowerCase();
+  var p = el('in-pass').value.trim();
+
+  // Debug — biar keliatan di console
+  console.log('=== LOGIN ===');
+  console.log('User input:', JSON.stringify(u));
+  console.log('Pass input:', JSON.stringify(p));
+  console.log('Pass length:', p.length);
+
+  if (!u || !p) {
+    showError('Isi username & password dulu!');
+    return;
+  }
+
+  var validU = String.fromCharCode(100, 111, 121, 122);  // doyz
+  var validP = String.fromCharCode(49, 50, 51);          // 123
+
+  console.log('Expected user:', JSON.stringify(validU));
+  console.log('Expected pass:', JSON.stringify(validP));
+
+  if (u === validU && p === validP) {
+    console.log('✅ LOGIN SUCCESS');
+    el('login-screen').classList.add('hide');
+    el('home-screen').classList.remove('hide');
+    el('error-box').classList.add('hide');
+    toast('Login berhasil!', 'ok');
+  } else {
+    console.log('❌ LOGIN FAILED');
+    if (u !== validU && p !== validP) {
+      showError('Username & Password salah');
+    } else if (u !== validU) {
+      showError('Username salah');
+    } else {
+      showError('Password salah');
+    }
+  }
+}
+
+function showError(msg) {
+  var eb = el('error-box');
+  el('err-text').textContent = msg;
+  eb.classList.remove('hide');
+}
+
+// ============ LOGOUT ============
+function doLogout() {
+  el('toggle-ai').checked = false;
+  el('ai-orb').classList.add('hide');
+  el('ai-panel').classList.add('hide');
+  el('home-screen').classList.add('hide');
+  el('login-screen').classList.remove('hide');
+  el('in-user').value = '';
+  el('in-pass').value = '';
+  el('error-box').classList.add('hide');
+  stopScan();
+  toast('Logout', 'ok');
+}
+
+// ============ TOGGLE ============
+function onToggleAI(checkbox) {
+  if (checkbox.checked) {
+    el('ai-orb').classList.remove('hide');
+    toast('Orb aktif', 'ok');
+  } else {
+    el('ai-orb').classList.add('hide');
+    el('ai-panel').classList.add('hide');
+    stopScan();
+    toast('Orb mati');
+  }
+}
+
+// ============ MIN / CLOSE / SETTINGS ============
+function doMinimize(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  el('ai-panel').classList.add('hide');
+  toast('Diminimize');
+}
+
+function doClose(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  el('ai-panel').classList.add('hide');
+  stopScan();
+  toast('Ditutup');
+}
+
+function doToggleSettings(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  var sp = el('ai-settings-panel');
+  el('ai-key').value = localStorage.getItem('doyzz_key') || '';
+  el('ai-endpoint').value = localStorage.getItem('doyzz_endpoint') || 'https://api.groq.com/openai/v1/chat/completions';
+  el('ai-model').value = localStorage.getItem('doyzz_model') || 'llama-3.3-70b-versatile';
+  sp.classList.toggle('hide');
+}
+
+function doSaveSettings() {
+  localStorage.setItem('doyzz_key', el('ai-key').value.trim());
+  localStorage.setItem('doyzz_endpoint', el('ai-endpoint').value.trim());
+  localStorage.setItem('doyzz_model', el('ai-model').value.trim());
+  el('ai-settings-panel').classList.add('hide');
+  addMsg('ok', 'Pengaturan disimpan.');
+  toast('Disimpan', 'ok');
+}
+
+// ============ SCORE ============
+function pickScore(element) {
+  var pills = document.querySelectorAll('.score-pill');
+  for (var i = 0; i < pills.length; i++) pills[i].classList.remove('active');
+  element.classList.add('active');
+  _score = parseInt(element.getAttribute('data-s'));
+}
+
+// ============ CHAT HELPERS ============
+function addMsg(type, text) {
+  var body = el('ai-body');
+  if (!body) return;
+  var d = document.createElement('div');
+  d.className = 'msg ' + type;
+  d.innerHTML = text;
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+
+// ============ SCAN ============
+function scanQuestions() {
+  var out = [];
+  var groups = {};
+  var radios = document.querySelectorAll('input[type="radio"]');
+  for (var i = 0; i < radios.length; i++) {
+    var r = radios[i];
+    if (!r.name) continue;
+    if (!groups[r.name]) groups[r.name] = [];
+    groups[r.name].push(r);
+  }
+  for (var name in groups) {
+    if (!groups.hasOwnProperty(name)) continue;
+    var inputs = groups[name];
+    if (inputs.length < 2) continue;
+
+    var container = inputs[0].parentElement;
+    var text = '';
+    var node = inputs[0].parentElement;
+    var depth = 0;
+    while (node && depth < 8) {
+      var txt = (node.innerText || node.textContent || '').trim();
+      if (txt && txt.length > 5 && txt.length < 500) {
+        text = txt.split('\n')[0].substring(0, 300);
+        break;
+      }
+      node = node.parentElement;
+      depth++;
+    }
+
+    var options = [];
+    for (var j = 0; j < inputs.length; j++) {
+      var inp = inputs[j];
+      var labelText = '';
+      if (inp.id) {
+        var lbl = document.querySelector('label[for="' + inp.id + '"]');
+        if (lbl) labelText = lbl.innerText.trim();
+      }
+      if (!labelText) {
+        var pl = inp.closest ? inp.closest('label') : null;
+        if (pl) labelText = pl.innerText.trim();
+      }
+      options.push({
+        value: inp.value || '',
+        text: labelText || inp.value,
+        input: inp
+      });
+    }
+
+    if (text && options.length >= 2) {
+      out.push({ el: container, text: text, options: options });
+    }
+  }
+  return out;
+}
+
+function startScan() {
+  if (_scanning) return;
+  _scanning = true;
+  el('btn-scan').classList.add('scanning');
+  el('scan-text').textContent = 'Stop Scan';
+  addMsg('info', '📡 Scan aktif...');
+
+  _scanTimer = setInterval(function() {
+    var qs = scanQuestions();
+    if (qs.length && !el('btn-scan').getAttribute('data-reported')) {
+      addMsg('ok', 'Terdeteksi ' + qs.length + ' soal.');
+      el('btn-scan').setAttribute('data-reported', '1');
+    } else if (!qs.length) {
+      addMsg('info', 'Belum ada soal terdeteksi...');
+    }
+  }, 2200);
+}
+
+function stopScan() {
+  if (!_scanning) return;
+  _scanning = false;
+  clearInterval(_scanTimer);
+  _scanTimer = null;
+  el('btn-scan').classList.remove('scanning');
+  el('btn-scan').removeAttribute('data-reported');
+  el('scan-text').textContent = 'Scan Soal Ujian Live';
+}
+
+function doScan() {
+  if (_scanning) {
+    stopScan();
+    addMsg('info', 'Scan dihentikan.');
+  } else {
+    startScan();
+  }
+}
+
+// ============ ASK AI ============
+function askAI(messages) {
+  return new Promise(function(resolve, reject) {
+    var key = localStorage.getItem('doyzz_key') || '';
+    var endpoint = localStorage.getItem('doyzz_endpoint') || 'https://api.groq.com/openai/v1/chat/completions';
+    var model = localStorage.getItem('doyzz_model') || 'llama-3.3-70b-versatile';
+
+    if (!key) {
+      reject(new Error('API Key belum diisi. Klik ⚙'));
+      return;
+    }
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model: model,
+        temperature: 0.2,
+        messages: messages
+      })
+    })
+    .then(function(res) {
+      return res.json().then(function(data) {
+        return { ok: res.ok, status: res.status, data: data };
+      });
+    })
+    .then(function(r) {
+      if (!r.ok) {
+        var msg = (r.data && r.data.error && r.data.error.message) || ('Error ' + r.status);
+        reject(new Error(msg));
+      } else {
+        resolve(r.data.choices[0].message.content);
+      }
+    })
+    .catch(function(err) {
+      reject(new Error('Koneksi gagal: ' + err.message));
+    });
+  });
+}
+
+// ============ JAWAB OTOMATIS ============
+function doAnswer() {
+  var mapel = el('sel-mapel').value;
+  if (!mapel) {
+    toast('Pilih mapel dulu!', 'err');
+    return;
+  }
+
+  var qs = scanQuestions();
+  if (!qs.length) {
+    toast('Tidak ada soal', 'err');
+    addMsg('err', 'Tidak ada soal terdeteksi.');
+    return;
+  }
+
+  var key = localStorage.getItem('doyzz_key') || '';
+  if (!key) {
+    toast('Isi API Key dulu di ⚙', 'err');
+    el('ai-settings-panel').classList.remove('hide');
+    return;
+  }
+
+  el('btn-answer').disabled = true;
+  addMsg('bot', 'Menjawab ' + qs.length + ' soal ' + mapel + '...');
+
+  var benar = 0, salah = 0;
+  var idx = 0;
+
+  function next() {
+    if (idx >= qs.length) {
+      addMsg('ok', 'Selesai! Benar ' + benar + ' · Salah ' + salah);
+      toast('Selesai! ' + benar + ' benar', 'ok');
+      el('btn-answer').disabled = false;
+      return;
+    }
+
+    var q = qs[idx];
+    var optTexts = [];
+    for (var k = 0; k < q.options.length; k++) optTexts.push(q.options[k].text);
+    var optList = optTexts.join('\n');
+
+    var prompt = 'Mapel: ' + mapel + '\nTarget nilai: ' + _score +
+      '\nPertanyaan: ' + q.text +
+      '\n\nPilihan:\n' + optList +
+      '\n\nJawab HANYA dengan JSON: {"jawaban": "A"}';
+
+    askAI([
+      { role: 'system', content: 'Kamu ahli jawab soal pilihan ganda. Balas JSON saja.' },
+      { role: 'user', content: prompt }
+    ])
+    .then(function(raw) {
+      var cleaned = String(raw).replace(/```json|```/g, '').trim();
+      var huruf = '';
+      try {
+        huruf = (JSON.parse(cleaned).jawaban || '').toString().toUpperCase().trim();
+      } catch (e) {
+        var m = cleaned.match(/[A-D]/);
+        huruf = m ? m[0] : '';
+      }
+
+      var picked = null;
+      for (var x = 0; x < q.options.length; x++) {
+        if (q.options[x].value.toUpperCase() === huruf) {
+          picked = q.options[x];
+          break;
+        }
+      }
+
+      if (picked) {
+        picked.input.checked = true;
+        try {
+          picked.input.dispatchEvent(new Event('change', { bubbles: true }));
+          picked.input.dispatchEvent(new Event('click', { bubbles: true }));
+        } catch (err) {}
+        addMsg('ok', '[' + (idx + 1) + '] ' + huruf);
+        benar++;
+      } else {
+        addMsg('err', '[' + (idx + 1) + '] "' + huruf + '" tidak cocok.');
+        salah++;
+      }
+    })
+    .catch(function(err) {
+      addMsg('err', '[' + (idx + 1) + '] ' + err.message);
+      salah++;
+    })
+    .then(function() {
+      idx++;
+      setTimeout(next, 300);
+    });
+  }
+
+  next();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  if (el('ai-key')) el('ai-key').value = localStorage.getItem('doyzz_key') || '';
+  if (el('ai-endpoint')) el('ai-endpoint').value = localStorage.getItem('doyzz_endpoint') || 'https://api.groq.com/openai/v1/chat/completions';
+  if (el('ai-model')) el('ai-model').value = localStorage.getItem('doyzz_model') || 'llama-3.3-70b-versatile';
+
+  el('in-pass').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+      e.preventDefault();
+      doLogin();
+    }
+  });
+
+  el('in-user').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+      e.preventDefault();
+      el('in-pass').focus();
+    }
+  });
+
+  // ORB DRAG + TAP
+  var orb = el('ai-orb');
+  var isDragging = false, hasMoved = false;
+  var startX = 0, startY = 0, baseX = 0, baseY = 0;
+
+  function orbStart(cx, cy) {
+    isDragging = true; hasMoved = false;
+    startX = cx; startY = cy;
+    var rect = orb.getBoundingClientRect();
+    baseX = rect.left; baseY = rect.top;
+    orb.style.right = 'auto'; orb.style.bottom = 'auto';
+    orb.style.left = baseX + 'px'; orb.style.top = baseY + 'px';
+  }
+  function orbMove(cx, cy) {
+    if (!isDragging) return;
+    var dx = cx - startX, dy = cy - startY;
+    if (!hasMoved && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) hasMoved = true;
+    if (hasMoved) {
+      orb.style.left = (baseX + dx) + 'px';
+      orb.style.top = (baseY + dy) + 'px';
+    }
+  }
+  function orbEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    if (!hasMoved) {
+      var panel = el('ai-panel');
+      panel.classList.toggle('hide');
+    }
+  }
+
+  orb.addEventListener('touchstart', function(e) {
+    var t = e.touches[0]; orbStart(t.clientX, t.clientY); e.preventDefault();
+  }, { passive: false });
+  orb.addEventListener('touchmove', function(e) {
+    var t = e.touches[0]; orbMove(t.clientX, t.clientY); e.preventDefault();
+  }, { passive: false });
+  orb.addEventListener('touchend', function(e) { orbEnd(); e.preventDefault(); }, { passive: false });
+  orb.addEventListener('touchcancel', function() { isDragging = false; hasMoved = false; });
+  orb.addEventListener('mousedown', function(e) { orbStart(e.clientX, e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', function(e) { orbMove(e.clientX, e.clientY); });
+  document.addEventListener('mouseup', function() { orbEnd(); });
+
+  // PANEL DRAG
+  var dragBar = el('ai-drag');
+  var pDragging = false;
+  var pStartX = 0, pStartY = 0, pBaseX = 0, pBaseY = 0;
+
+  function pStart(cx, cy) {
+    pDragging = true;
+    pStartX = cx; pStartY = cy;
+    var panel = el('ai-panel');
+    var rect = panel.getBoundingClientRect();
+    pBaseX = rect.left; pBaseY = rect.top;
+    panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    panel.style.left = pBaseX + 'px'; panel.style.top = pBaseY + 'px';
+  }
+  function pMove(cx, cy) {
+    if (!pDragging) return;
+    var panel = el('ai-panel');
+    panel.style.left = (pBaseX + cx - pStartX) + 'px';
+    panel.style.top = (pBaseY + cy - pStartY) + 'px';
+  }
+  function pEnd() { pDragging = false; }
+
+  dragBar.addEventListener('touchstart', function(e) {
+    if (e.target.tagName === 'BUTTON') return;
+    var t = e.touches[0]; pStart(t.clientX, t.clientY); e.preventDefault();
+  }, { passive: false });
+  dragBar.addEventListener('touchmove', function(e) {
+    var t = e.touches[0]; pMove(t.clientX, t.clientY); e.preventDefault();
+  }, { passive: false });
+  dragBar.addEventListener('touchend', function() { pEnd(); });
+  dragBar.addEventListener('mousedown', function(e) {
+    if (e.target.tagName === 'BUTTON') return;
+    pStart(e.clientX, e.clientY); e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e) { pMove(e.clientX, e.clientY); });
+  document.addEventListener('mouseup', function() { pEnd(); });
+
+  console.log('DOYZZ AI ready');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
