@@ -2,97 +2,110 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KACUNG AI — Offline Solver</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KACUNG AI — Vision Solver</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
         :root {
-            --bg: #09090b;
-            --panel: #18181b;
-            --accent: #00ffcc;
-            --accent-dim: rgba(0, 255, 204, 0.1);
-            --text: #e4e4e7;
-            --text-dim: #a1a1aa;
-            --border: #27272a;
+            --bg-base: #0a0a0c;
+            --bg-panel: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #6366f1; /* Indigo */
+            --accent-glow: rgba(99, 102, 241, 0.4);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         
         body {
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-base);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
             background-image: 
-                linear-gradient(var(--border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 30px 30px;
-            background-position: center;
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
             overflow-x: hidden;
         }
 
         .container {
             width: 100%;
-            max-width: 600px;
-            background: var(--panel);
+            max-width: 500px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
             position: relative;
             z-index: 10;
-            animation: fadeUp 0.6s ease-out;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .header svg { width: 28px; height: 28px; color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+        
         h1 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            text-align: center;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            color: var(--accent);
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .scanner-container {
             position: relative;
             width: 100%;
-            height: 200px;
-            border: 2px dashed var(--border);
-            border-radius: 12px;
+            height: 220px;
+            border: 1.5px dashed var(--border);
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             overflow: hidden;
-            background: #000;
-            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
 
-        .scanner-container:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .scanner-container:hover { border-color: rgba(99, 102, 241, 0.5); background: rgba(99, 102, 241, 0.05); }
 
         .scanner-line {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 2px;
-            background: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
-            animation: scan 2s linear infinite;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            box-shadow: 0 0 15px var(--accent);
+            animation: scan 2.5s ease-in-out infinite;
             display: none;
+            z-index: 5;
         }
 
         @keyframes scan {
-            0% { top: 0; }
-            50% { top: 100%; }
-            100% { top: 0; }
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
         }
 
         .scanner-container.scanning .scanner-line { display: block; }
@@ -102,126 +115,202 @@
             max-height: 100%;
             object-fit: contain;
             display: none;
+            border-radius: 12px;
         }
 
-        .text-overlay {
-            position: absolute;
-            color: var(--text-dim);
-            font-size: 0.9rem;
-            text-align: center;
-            pointer-events: none;
+        .upload-ui {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            transition: opacity 0.3s;
         }
 
-        #previewImg[src] ~ .text-overlay { display: none; }
+        .upload-ui svg { width: 32px; height: 32px; opacity: 0.7; }
+        .upload-ui span { font-size: 0.85rem; font-weight: 500; }
+
+        #previewImg[src] ~ .upload-ui { opacity: 0; pointer-events: none; }
 
         button {
             width: 100%;
-            padding: 14px;
-            margin-top: 16px;
-            background: var(--accent);
-            color: #000;
+            padding: 16px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--accent), #818cf8);
+            color: #fff;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 700;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 8px;
+            box-shadow: 0 4px 15px var(--accent-glow);
         }
 
-        button:hover:not(:disabled) { background: #00ccaa; box-shadow: 0 0 15px rgba(0, 255, 204, 0.4); }
-        button:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; }
+        button svg { width: 18px; height: 18px; }
+
+        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
+        button:active:not(:disabled) { transform: translateY(0); }
+        button:disabled { background: var(--border); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+
+        .progress-container {
+            width: 100%;
+            margin-top: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
 
         .progress-bar {
             width: 100%;
             height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            margin-top: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
             overflow: hidden;
-            display: none;
         }
 
         .progress-fill {
             height: 100%;
             width: 0%;
             background: var(--accent);
+            border-radius: 4px;
             transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
         }
 
         .status {
             text-align: center;
-            font-size: 0.85rem;
-            margin-top: 10px;
+            font-size: 0.8rem;
             color: var(--accent);
-            min-height: 20px;
             font-family: monospace;
+            font-weight: 500;
         }
 
         .result-box {
-            margin-top: 20px;
-            background: #000;
+            margin-top: 24px;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 16px;
+            padding: 20px;
             display: none;
-            animation: fadeIn 0.4s;
+            animation: fadeIn 0.4s ease-out;
         }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .result-box h3 {
-            font-size: 0.8rem;
-            color: var(--text-dim);
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
 
+        .result-header svg { width: 14px; height: 14px; }
+        
+        .result-header.ai-color { color: var(--accent); }
+
         .result-content {
-            font-family: monospace;
+            font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
             line-height: 1.6;
             white-space: pre-wrap;
             word-break: break-word;
         }
 
-        .result-content.ocr { color: #888; border-left: 2px solid #444; padding-left: 10px; margin-bottom: 15px;}
-        .result-content.ai { color: var(--accent); text-shadow: 0 0 2px var(--accent-dim); }
+        .result-content.ocr { 
+            color: var(--text-muted); 
+            font-size: 0.85rem;
+            padding-left: 12px; 
+            border-left: 2px solid var(--border); 
+            margin-bottom: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .result-content.ai { 
+            color: var(--text-main); 
+            font-weight: 500;
+        }
 
         input[type="file"] { display: none; }
         
-        .blink { animation: blink 1s step-end infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
+        .blink { animation: blink 1.2s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>⚡ KACUNG AI ⚡</h1>
+        <div class="header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            <h1>KACUNG VISION</h1>
+        </div>
         
         <div class="scanner-container" id="dropZone">
             <img id="previewImg" alt="Preview">
-            <div class="text-overlay">Klik untuk Upload Screenshot<br><small>(atau ambil foto)</small></div>
+            <div class="upload-ui">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>Pilih Screenshot Soal</span>
+            </div>
             <div class="scanner-line"></div>
-            <input type="file" id="fileInput" accept="image/*" capture="environment">
+            <input type="file" id="fileInput" accept="image/*">
         </div>
 
-        <button id="solveBtn" disabled>PROSES SOAL</button>
+        <button id="solveBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            PROSES SEKARANG
+        </button>
         
-        <div class="progress-bar" id="progBar">
-            <div class="progress-fill" id="progFill"></div>
+        <div class="progress-container" id="progContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progFill"></div>
+            </div>
+            <div class="status" id="statusText">Menunggu...</div>
         </div>
-        
-        <div class="status" id="statusText">Menunggu gambar...</div>
 
         <div class="result-box" id="resultBox">
-            <h3>Teks Layar (OCR)</h3>
+            <div class="result-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                Ekstraksi Teks
+            </div>
             <div class="result-content ocr" id="ocrText">...</div>
-            <h3>Jawaban AI</h3>
+            
+            <div class="result-header ai-color">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                    <path d="M12 12 2.1 12"></path>
+                    <path d="M12 12 18.5 3.5"></path>
+                </svg>
+                Analisis AI
+            </div>
             <div class="result-content ai" id="aiText">...</div>
         </div>
     </div>
@@ -234,7 +323,7 @@
         const previewImg = document.getElementById('previewImg');
         const solveBtn = document.getElementById('solveBtn');
         const statusText = document.getElementById('statusText');
-        const progBar = document.getElementById('progBar');
+        const progContainer = document.getElementById('progContainer');
         const progFill = document.getElementById('progFill');
         const resultBox = document.getElementById('resultBox');
         const ocrText = document.getElementById('ocrText');
@@ -243,10 +332,8 @@
         let currentImage = null;
         let engine = null;
 
-        // Model yang didukung WebLLM (butuh WebGPU)
         const selectedModel = "Qwen2-0.5B-Instruct-q4f16_1-MLC";
 
-        // 1. HANDLE UPLOAD GAMBAR
         dropZone.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', (e) => {
@@ -259,24 +346,22 @@
                 previewImg.src = currentImage;
                 previewImg.style.display = 'block';
                 solveBtn.disabled = false;
-                statusText.textContent = "Gambar siap. Klik 'PROSES SOAL'.";
-                statusText.style.color = "var(--accent)";
+                statusText.textContent = "Gambar siap diproses.";
+                progContainer.style.display = 'flex';
                 resultBox.style.display = 'none';
             };
             reader.readAsDataURL(file);
         });
 
-        // 2. PROSES AI & OCR
         solveBtn.addEventListener('click', async () => {
             if (!currentImage) return;
 
             solveBtn.disabled = true;
             resultBox.style.display = 'none';
             dropZone.classList.add('scanning');
+            progContainer.style.display = 'flex';
             
-            // TAHAP 1: OCR (Tesseract.js)
-            statusText.innerHTML = '<span class="blink">Membaca teks layar...</span>';
-            progBar.style.display = 'block';
+            statusText.innerHTML = '<span class="blink">Mengekstrak teks gambar...</span>';
             progFill.style.width = '10%';
 
             try {
@@ -285,38 +370,38 @@
                 const text = ret.data.text.trim();
                 await worker.terminate();
 
-                progFill.style.width = '40%';
+                progFill.style.width = '30%';
 
                 if (!text) {
-                    throw new Error("Tidak ada teks yang terdeteksi di gambar.");
+                    throw new Error("Tidak ada teks yang terdeteksi.");
                 }
 
                 ocrText.textContent = text;
-                statusText.innerHTML = '<span class="blink">Memuat model AI (pertama kali butuh waktu)...</span>';
+                statusText.innerHTML = '<span class="blink">Memuat model AI (sekali saja)...</span>';
 
-                // TAHAP 2: Inisialisasi WebLLM (Offline AI)
                 if (!engine) {
                     const initProgressCallback = (report) => {
                         statusText.innerHTML = `<span class="blink">${report.text}</span>`;
+                        // Estimasi progress download model
+                        if(report.progress) progFill.style.width = `${30 + (report.progress * 40)}%`;
                     };
                     engine = await webllm.CreateMLCEngine(selectedModel, { initProgressCallback });
                 }
 
-                progFill.style.width = '70%';
+                progFill.style.width = '80%';
                 statusText.innerHTML = '<span class="blink">Menganalisis & menjawab...</span>';
 
-                // TAHAP 3: Prompt Engineering
-                const prompt = `Kamu adalah asisten ujian yang sangat pintar. Baca teks soal berikut dan jawab dengan TEPAT dan SINGKAT.
+                const prompt = `Kamu adalah asisten cerdas. Baca teks soal berikut dan jawab dengan TEPAT.
 
 Teks Layar:
 """
 ${text}
 """
 
-Instruksi:
-- Jika ini pilihan ganda, jawab dengan format: "Jawaban: [Huruf]. [Alasan singkat]"
-- Jika ini matematika, tunjukkan hasil akhirnya.
-- Jika isian, jawab langsung.
+Aturan:
+- Pilihan ganda: "Jawaban: [Huruf]. [Alasan]"
+- Matematika: Tunjukkan hasil akhir.
+- Isian: Jawab langsung.
 Jangan basa-basi.`;
 
                 const messages = [
@@ -324,10 +409,9 @@ Jangan basa-basi.`;
                     { role: "user", content: prompt }
                 ];
 
-                // TAHAP 4: Generate Answer (Streaming)
                 const chunks = await engine.chat.completions.create({
                     messages,
-                    temperature: 0.3,
+                    temperature: 0.2,
                     max_tokens: 512,
                     stream: true,
                 });
@@ -341,22 +425,21 @@ Jangan basa-basi.`;
                     const delta = chunk.choices[0]?.delta?.content || "";
                     fullReply += delta;
                     aiText.textContent = fullReply;
-                    window.scrollTo(0, document.body.scrollHeight);
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                 }
 
-                statusText.textContent = "Selesai!";
-                statusText.style.color = "var(--accent)";
+                statusText.textContent = "Selesai.";
+                progFill.style.background = "#10b981"; // Green
 
             } catch (err) {
                 console.error(err);
                 statusText.textContent = "Error: " + err.message;
-                statusText.style.color = "#ff4444";
-                aiText.textContent = "Gagal memproses. Pastikan browser mendukung WebGPU (Chrome/Edge terbaru) dan koneksi internet stabil saat pertama kali memuat model.";
+                statusText.style.color = "#ef4444";
+                aiText.textContent = "Gagal memproses. Pastikan koneksi stabil saat pertama kali load, dan browser mendukung WebGPU.";
                 resultBox.style.display = 'block';
             } finally {
                 solveBtn.disabled = false;
                 dropZone.classList.remove('scanning');
-                setTimeout(() => { progBar.style.display = 'none'; progFill.style.width = '0%'; }, 2000);
             }
         });
     </script>
